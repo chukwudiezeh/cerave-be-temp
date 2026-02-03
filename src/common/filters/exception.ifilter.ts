@@ -23,8 +23,14 @@ export class ExceptionsFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res = exception.getResponse();
-      message = typeof res === 'string' ? res : (res as any).message[0] || message[0];
-      errorName = STATUS_MESSAGES[status];
+      if (typeof res === 'string') {
+        message = res;
+      } else if (Array.isArray((res as any).message)) {
+        message = (res as any).message;
+      } else {
+        message = (res as any).message || message;
+      }
+      errorName = STATUS_MESSAGES[status] || 'Error';
     }
 
     response.status(status).json({

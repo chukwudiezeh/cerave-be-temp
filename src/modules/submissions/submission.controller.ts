@@ -6,7 +6,7 @@ import { CreateSubmissionDto } from './dto';
 export class SubmissionController {
   constructor(private readonly submissionService: SubmissionService) {}
 
-  @Post()
+  @Post('create')
   async create(@Body() createSubmissionDto: CreateSubmissionDto) {
     return await this.submissionService.create(createSubmissionDto);
   }

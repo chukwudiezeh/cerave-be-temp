@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Submission } from './entities/submission.entity';
@@ -16,16 +16,8 @@ export class SubmissionService {
   ) {}
 
   async create(createSubmissionDto: CreateSubmissionDto): Promise<Submission> {
-    const {
-      firstname,
-      surname,
-      email,
-      mobile,
-      address,
-      participationCategoryId,
-      contentCategoryId,
-      contentUrl,
-    } = createSubmissionDto;
+    const { firstname, surname, email, mobile, address, 
+        participationCategoryId, contentCategoryId, contentUrl } = createSubmissionDto;
 
     return await this.dataSource.transaction(async (transactionManager) => {
       let participant = await transactionManager.findOne(Participant, {
@@ -43,6 +35,21 @@ export class SubmissionService {
         participant = await transactionManager.save(Participant, participant);
       }
 
+      // Check for duplicate submission (same participant + participation category + content category)
+      const existingSubmission = await transactionManager.findOne(Submission, {
+        where: {
+          participantId: participant.id,
+          participationCategoryId,
+          contentCategoryId,
+        },
+      });
+
+      if (existingSubmission) {
+        throw new ConflictException(
+          'You have already submitted content for this category for this participation type'
+        );
+      }
+
       const submission = transactionManager.create(Submission, {
         participantId: participant.id,
         participationCategoryId,
@@ -50,7 +57,11 @@ export class SubmissionService {
         contentUrl,
       });
 
-      return await transactionManager.save(Submission, submission);
+      const savedSubmission = await transactionManager.save(Submission, submission);
+
+      // TODO: Dispatch notification after successful submission (e.g., email confirmation)
+
+      return savedSubmission;
     });
   }
 }
