@@ -35,10 +35,10 @@ ingress:
 
 resources:
   limits:
-    cpu: "1500m"
-    memory: 1024Mi
+    cpu: "1000m"
+    memory: 1Gi
   requests:
-    cpu: "1"
+    cpu: "500m"
     memory: 512Mi
 
 # -- Environment Variables to be passed to the deployment

@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cerave-be
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  # tls:
+  # - secretName:  mercury-tls
+  defaultBackend:
+    service:
+      name: cerave-be
+      port:
+        number: 80
+  rules:
+  - host: api.cerave.com.ng
+    http:
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: cerave-be
+            port:
+              number: 80
