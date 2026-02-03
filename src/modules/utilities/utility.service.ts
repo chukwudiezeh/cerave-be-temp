@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ContentCategory } from './entities/content-category.entity';
 import { ParticipationCategory } from './entities/participation-category.entity';
+import { Setting } from './entities/setting.entity';
 
 @Injectable()
 export class UtilityService {
@@ -12,6 +13,9 @@ export class UtilityService {
     
     @InjectRepository(ParticipationCategory)
     private readonly participationCategoryRepository: Repository<ParticipationCategory>,
+
+    @InjectRepository(Setting)
+    private readonly settingRepository: Repository<Setting>,
   ) {}
 
   async findAllContentCategories(): Promise<ContentCategory[]> {
@@ -20,5 +24,9 @@ export class UtilityService {
 
   async findAllParticipationCategories(): Promise<ParticipationCategory[]> {
     return this.participationCategoryRepository.find();
+  }
+
+  async findAllSettings(): Promise<Setting[]> {
+    return this.settingRepository.find();
   }
 }

@@ -6,6 +6,8 @@ import { AppService } from './app.service';
 import { UtilityModule } from './modules/utilities/utility.module';
 import { ParticipantModule } from './modules/participants/participant.module';
 import { SubmissionModule } from './modules/submissions/submission.module';
+import { VoterModule } from './modules/voters/voter.module';
+import { NotificationModule } from './modules/notifications/notification.module';
 // import { appConfig } from './config';
 
 @Module({
@@ -33,6 +35,8 @@ import { SubmissionModule } from './modules/submissions/submission.module';
     UtilityModule,
     ParticipantModule,
     SubmissionModule,
+    VoterModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

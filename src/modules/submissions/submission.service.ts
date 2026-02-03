@@ -4,6 +4,7 @@ import { Repository, DataSource } from 'typeorm';
 import { Submission } from './entities/submission.entity';
 import { Participant } from '@/modules/participants/entities/participant.entity';
 import { CreateSubmissionDto } from './dto';
+import { NotificationService } from '@/modules/notifications/notification.service';
 
 @Injectable()
 export class SubmissionService {
@@ -13,6 +14,7 @@ export class SubmissionService {
     @InjectRepository(Participant)
     private readonly participantRepository: Repository<Participant>,
     private readonly dataSource: DataSource,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(createSubmissionDto: CreateSubmissionDto): Promise<Submission> {
@@ -59,7 +61,16 @@ export class SubmissionService {
 
       const savedSubmission = await transactionManager.save(Submission, submission);
 
-      // TODO: Dispatch notification after successful submission (e.g., email confirmation)
+    //   this.notificationService.sendEmailNotification({
+    //     recipient: email.toLowerCase(),
+    //     subject: 'Submission Received - CeraVe Campaign',
+    //     template: 'submission_confirmation',
+    //     params: {
+    //       firstname,
+    //       surname,
+    //       submissionId: savedSubmission.id,
+    //     },
+    //   });
 
       return savedSubmission;
     });

@@ -14,4 +14,9 @@ export class UtilityController {
   async getParticipationCategories() {
     return await this.utilityService.findAllParticipationCategories();
   }
+
+  @Get('vote-settings')
+  async getSettings() {
+    return await this.utilityService.findAllSettings();
+  }
 }
