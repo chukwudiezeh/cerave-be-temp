@@ -1,14 +1,21 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  IsUrl,
-  IsOptional,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNumber, IsString, IsUrl, IsOptional, IsArray, ValidateNested, ArrayMinSize } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class SubmissionItemDto {
+  @IsNotEmpty({ message: 'Participation category is required' })
+  @IsNumber({}, { message: 'Participation category must be a number' })
+  participationCategoryId: number;
+
+  @IsNotEmpty({ message: 'Content category is required' })
+  @IsNumber({}, { message: 'Content category must be a number' })
+  contentCategoryId: number;
+
+  @IsNotEmpty({ message: 'Content URL is required' })
+  @IsUrl({}, { message: 'Invalid URL format' })
+  contentUrl: string;
+}
 
 export class CreateSubmissionDto {
-  // Participant fields
   @IsNotEmpty({ message: 'First name is required' })
   @IsString()
   firstname: string;
@@ -29,16 +36,9 @@ export class CreateSubmissionDto {
   @IsString()
   address?: string;
 
-  // Submission fields
-  @IsNotEmpty({ message: 'Participation category is required' })
-  @IsNumber()
-  participationCategoryId: number;
-
-  @IsNotEmpty({ message: 'Content category is required' })
-  @IsNumber()
-  contentCategoryId: number;
-
-  @IsNotEmpty({ message: 'Content URL is required' })
-  @IsUrl({}, { message: 'Invalid URL format' })
-  contentUrl: string;
+  @IsArray({ message: 'Submissions must be an array' })
+  @ArrayMinSize(1, { message: 'At least one submission is required' })
+  @ValidateNested({ each: true })
+  @Type(() => SubmissionItemDto)
+  submissions: SubmissionItemDto[];
 }

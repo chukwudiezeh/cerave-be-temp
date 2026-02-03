@@ -1,9 +1,9 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Submission } from './entities/submission.entity';
 import { Participant } from '@/modules/participants/entities/participant.entity';
-import { CreateSubmissionDto } from './dto';
+import { CreateSubmissionDto, SubmissionItemDto } from './dto';
 import { NotificationService } from '@/modules/notifications/notification.service';
 
 @Injectable()
@@ -17,9 +17,10 @@ export class SubmissionService {
     private readonly notificationService: NotificationService,
   ) {}
 
-  async create(createSubmissionDto: CreateSubmissionDto): Promise<Submission> {
-    const { firstname, surname, email, mobile, address, 
-        participationCategoryId, contentCategoryId, contentUrl } = createSubmissionDto;
+  async create(createSubmissionDto: CreateSubmissionDto): Promise<{ participant: Participant; submissions: Submission[] }> {
+    const { firstname, surname, email, mobile, address, submissions } = createSubmissionDto;
+
+    this.validateUniqueSubmissions(submissions);
 
     return await this.dataSource.transaction(async (transactionManager) => {
       let participant = await transactionManager.findOne(Participant, {
@@ -37,31 +38,38 @@ export class SubmissionService {
         participant = await transactionManager.save(Participant, participant);
       }
 
-      // Check for duplicate submission (same participant + participation category + content category)
-      const existingSubmission = await transactionManager.findOne(Submission, {
-        where: {
-          participantId: participant.id,
-          participationCategoryId,
-          contentCategoryId,
-        },
-      });
+      const savedSubmissions: Submission[] = [];
+      const duplicates: string[] = [];
 
-      if (existingSubmission) {
-        throw new ConflictException(
-          'You have already submitted content for this category for this participation type'
-        );
+      for (const item of submissions) {
+        const existingSubmission = await transactionManager.findOne(Submission, {
+          where: {
+            participantId: participant.id,
+            participationCategoryId: item.participationCategoryId,
+            contentCategoryId: item.contentCategoryId,
+          },
+        });
+
+        if (existingSubmission) {
+          duplicates.push(`Participation: ${item.participationCategoryId}, Content: ${item.contentCategoryId}`);
+          continue;
+        }
+
+        const submission = transactionManager.create(Submission, {
+          participantId: participant.id,
+          participationCategoryId: item.participationCategoryId,
+          contentCategoryId: item.contentCategoryId,
+          contentUrl: item.contentUrl,
+        });
+
+        const saved = await transactionManager.save(Submission, submission);
+        savedSubmissions.push(saved);
       }
 
-      const submission = transactionManager.create(Submission, {
-        participantId: participant.id,
-        participationCategoryId,
-        contentCategoryId,
-        contentUrl,
-      });
+      if (savedSubmissions.length === 0) {
+        throw new ConflictException('All submissions already exist for this participant');
+      }
 
-      const savedSubmission = await transactionManager.save(Submission, submission);
-
-        // Send confirmation email
       this.notificationService.sendEmailNotification({
         recipient: email.toLowerCase(),
         subject: 'Submission Received - Cera Awards',
@@ -69,11 +77,26 @@ export class SubmissionService {
         params: {
           body: `<p>Dear ${firstname} ${surname},</p>
                  <p>Thank you for your submission!</p>
-                 <p>Your submission is under review.</p>`,
+                 <p>We received ${savedSubmissions.length} submission(s). They are now under review.</p>
+                 ${duplicates.length > 0 ? `<p>Note: ${duplicates.length} duplicate submission(s) were skipped.</p>` : ''}`,
         },
       });
 
-      return savedSubmission;
+      return { participant, submissions: savedSubmissions };
     });
+  }
+
+  private validateUniqueSubmissions(submissions: SubmissionItemDto[]): void {
+    const seen = new Set<string>();
+
+    for (const item of submissions) {
+      const key = `${item.participationCategoryId}-${item.contentCategoryId}`;
+      if (seen.has(key)) {
+        throw new BadRequestException(
+          `Duplicate submission in request: Participation category ${item.participationCategoryId} with content category ${item.contentCategoryId}`
+        );
+      }
+      seen.add(key);
+    }
   }
 }
