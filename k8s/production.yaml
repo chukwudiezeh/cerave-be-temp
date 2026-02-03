@@ -1,0 +1,90 @@
+image:
+  name: cerave-be
+  repository: swr.af-south-1.myhuaweicloud.com/tooling/cerave-be:latest
+  pullPolicy: Always
+
+nodeSelector:
+  kubernetes.azure.com/agentpool: backend
+
+service:
+  enabled: true
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+
+redis:
+  enabled: true
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+
+ingress:
+  enabled: true
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    kubernetes.io/ingress.class: nginx
+  hosts:
+    - paths: ["/"]
+      host: api.cerave.com.ng
+
+
+resources:
+  limits:
+    cpu: "1500m"
+    memory: 1024Mi
+  requests:
+    cpu: "1"
+    memory: 512Mi
+
+# -- Environment Variables to be passed to the deployment
+env:
+  - name: NODE_ENV
+    value: production
+  - name: NODE_PATH
+    value: "."
+  - name: DB_HOST
+    valueFrom:
+      secretKeyRef:
+        name: zin-secret
+        key: cerave_db_host
+  - name: DB_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: zin-secret
+        key: cerave_db_username
+  - name: DB_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: zin-secret
+        key: cerave_db_password
+  - name: DB_NAME
+    valueFrom:
+      secretKeyRef:
+        name: zin-secret
+        key: cerave_db_name
+  - name: DB_PORT
+    value: "3306"
+  - name: NOTIFICATION_API_URL
+    value: "http://hermes.igbimo.com/v1/notifications"
+  - name: APP_NAME
+    value: Cerave Awards
+  - name: NOTIFICATION_SENDER_ID
+    value: "CERAVE"
+  - name: NOTIFICATION_SENDER_EMAIL
+    value: "noreply@cerave.com.ng"
+
+probes:
+  enabled: true
+  livenessProbe:
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 80
+      scheme: HTTP
+    initialDelaySeconds: 60
+    periodSeconds: 10
