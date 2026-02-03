@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.gitignore
+.env
+*.md
+.dockerignore
+Dockerfile
+.eslintrc*
+.prettierrc*
+test
+coverage
+.vscode

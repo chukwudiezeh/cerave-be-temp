@@ -61,16 +61,17 @@ export class SubmissionService {
 
       const savedSubmission = await transactionManager.save(Submission, submission);
 
-    //   this.notificationService.sendEmailNotification({
-    //     recipient: email.toLowerCase(),
-    //     subject: 'Submission Received - CeraVe Campaign',
-    //     template: 'submission_confirmation',
-    //     params: {
-    //       firstname,
-    //       surname,
-    //       submissionId: savedSubmission.id,
-    //     },
-    //   });
+        // Send confirmation email
+      this.notificationService.sendEmailNotification({
+        recipient: email.toLowerCase(),
+        subject: 'Submission Received - Cera Awards',
+        template: 'generic',
+        params: {
+          body: `<p>Dear ${firstname} ${surname},</p>
+                 <p>Thank you for your submission!</p>
+                 <p>Your submission is under review.</p>`,
+        },
+      });
 
       return savedSubmission;
     });
