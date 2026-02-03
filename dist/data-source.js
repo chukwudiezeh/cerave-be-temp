@@ -13,5 +13,6 @@ exports.AppDataSource = new typeorm_1.DataSource({
     entities: [isProduction ? 'dist/**/*.entity.js' : 'src/**/*.entity.ts'],
     migrations: [isProduction ? 'dist/database/migrations/*.js' : 'src/database/migrations/*.ts'],
     synchronize: false,
+    ssl: isProduction ? { rejectUnauthorized: false } : false,
 });
 //# sourceMappingURL=data-source.js.map
