@@ -7,6 +7,7 @@ const exception_ifilter_1 = require("./common/filters/exception.ifilter");
 const common_1 = require("@nestjs/common");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    app.enableCors({ origin: "*" });
     app.useGlobalInterceptors(new transform_interceptor_1.TransformInterceptor());
     app.useGlobalFilters(new exception_ifilter_1.ExceptionsFilter());
     app.useGlobalPipes(new common_1.ValidationPipe({ transform: true }));
