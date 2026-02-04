@@ -70,7 +70,7 @@ export class SubmissionService {
         throw new ConflictException('All submissions already exist for this participant');
       }
 
-      this.notificationService.sendEmailNotification({
+      await this.notificationService.sendEmailNotification({
         recipient: email.toLowerCase(),
         subject: 'Submission Received - Cera Awards',
         template: 'generic',

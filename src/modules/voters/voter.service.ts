@@ -18,7 +18,7 @@ export class VoterService {
   }
 
   private async sendOtpEmail(email: string, otp: string): Promise<void> {
-    this.notificationService.sendEmailNotification({
+    await this.notificationService.sendEmailNotification({
       recipient: email,
       subject: 'Your Verification Code - CeraVe Voting',
       template: 'voter_otp',
