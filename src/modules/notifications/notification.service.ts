@@ -29,7 +29,7 @@ export class NotificationService {
     };
 
     try {
-      const response = await fetch(this.apiUrl, {
+      const response = await fetch(this.apiUrl+'?no_queue=true', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(mailOptions),
